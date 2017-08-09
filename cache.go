@@ -15,19 +15,17 @@ func (f *cached) memo(r image.Rectangle) {
 		f.cache = append(f.cache, r)
 		return
 	}
-	c := f.cache[len(f.cache)-1]
 	if r == f.cache[0] || r.In(f.cache[0]) {
 		return
 	}
-	if r.Min.X == c.Max.X || r.Max.X == c.Min.X || r.Max.Y == c.Min.Y || r.Min.Y == c.Max.Y {
+	if c := f.cache[len(f.cache)-1]; r.Min.X == c.Max.X || r.Max.X == c.Min.X || r.Max.Y == c.Min.Y || r.Min.Y == c.Max.Y {
 		f.cache[0] = f.cache[0].Union(r)
-	} else {
-		c := f.cache[0]
-		if c.Dx()*c.Dy() < r.Dx()*r.Dy() {
-			f.cache = append([]image.Rectangle{r}, f.cache...)
-		} else {
-			f.cache = append(f.cache, r)
-		}
+		return
+	}
+	f.cache = append(f.cache, r)
+	if c := f.cache[0]; c.Dx()*c.Dy() < r.Dx()*r.Dy() {
+		l := len(f.cache)-1
+		f.cache[0], f.cache[l] = f.cache[l], f.cache[0]
 	}
 }
 func (f *cached) Draw(dst draw.Image, r image.Rectangle, src image.Image, sp image.Point, op draw.Op) {
