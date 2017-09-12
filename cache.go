@@ -12,7 +12,7 @@ type cached struct {
 
 func (f *cached) memo(r image.Rectangle) {
 	if len(f.cache) == 0 {
-		f.cache = append(f.cache, r)
+		f.cache = append(f.cache, r.Inset(-1))
 		return
 	}
 	if r == f.cache[0] || r.In(f.cache[0]) {
