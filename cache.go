@@ -3,6 +3,8 @@ package drawcache
 import (
 	"image"
 	"image/draw"
+
+	"github.com/as/frame/font"
 )
 
 // cached is a drawer that remembers the clipping rectangle of each draw until flushed
@@ -24,10 +26,15 @@ func (f *cached) memo(r image.Rectangle) {
 	}
 	f.cache = append(f.cache, r)
 	if c := f.cache[0]; c.Dx()*c.Dy() < r.Dx()*r.Dy() {
-		l := len(f.cache)-1
+		l := len(f.cache) - 1
 		f.cache[0], f.cache[l] = f.cache[l], f.cache[0]
 	}
 }
+
+func (f *cached) StringBG(dst draw.Image, p image.Point, src image.Image, sp image.Point, ft *font.Font, s []byte, bg image.Image, bgp image.Point) int {
+	return font.StringBG(dst, p, src, sp, ft, s, bg, bgp)
+}
+
 func (f *cached) Draw(dst draw.Image, r image.Rectangle, src image.Image, sp image.Point, op draw.Op) {
 	draw.Draw(dst, r, src, sp, op)
 	f.memo(r)
@@ -39,8 +46,9 @@ func (f *cached) DrawMask(dst draw.Image, r image.Rectangle, src image.Image, sp
 func (f *cached) Cache() []image.Rectangle {
 	return f.cache
 }
-func (f *cached) Flush() {
+func (f *cached) Flush(r ...image.Rectangle) error{
 	f.cache = f.cache[:0]
+	return nil
 }
 func (f *cached) cacheinit() {
 	f.cache = make([]image.Rectangle, 0, 1024)
